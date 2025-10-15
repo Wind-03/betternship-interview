@@ -1,67 +1,97 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
 
-
-interface Products {
-  id:number;
-  name:string;
-  quantity:number;
-  price:number
+interface Product {
+  id: number;
+  name: string;
+  quantity: number;
+  price: number;
 }
 
-function App() {
-  const [cart, setCart] = useState<Products[]>([])
-  
-  const defaultProducts: Products[] =[
-    {
-      id:1,
-      name: "Notebook",
-      quantity:1,
-      price:10,
-    },
-    {
-      id:2,
-      name: "Pen",
-      quantity:1,
-      price:10,
-    },
-    {
-      id:3,
-      name: "Backpack",
-      quantity:1,
-      price:10,
-    },
-  ]
-  const [products, setProducts] = useState<Products[]>(defaultProducts)
+export default function App() {
+  const discountCode = "SAVE10";
+  const [discount, setDiscount] = useState("");
+  const [cart, setCart] = useState<Product[]>([]);
 
-  function addToCart(id:number){
-    const updatedCart = [... cart]
-    setCart((prev)=> [...prev, {id:, name, quantity, price}])
+  const defaultProducts: Product[] = [
+    { id: 1, name: "Notebook", quantity: 1, price: 10 },
+    { id: 2, name: "Pen", quantity: 1, price: 5 },
+    { id: 3, name: "Backpack", quantity: 1, price: 30 },
+  ];
+
+  const [products, setProducts] = useState<Product[]>(defaultProducts);
+
+  function addToCart(product: Product) {
+    const existingItem = cart.find((item) => item.id === product.id);
+
+    if (existingItem) {
+      setCart((prev) =>
+        prev.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
+    } else {
+      setCart((prev) => [...prev, { ...product }]);
+    }
   }
-  return(
+
+  function incrementQuantity(id: number) {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  }
+
+  function applyDiscount() {
+    if (discount === discountCode) {
+      alert("Discount applied!");
+    } else {
+      alert("Invalid code");
+    }
+  }
+
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const finalTotal = discount === discountCode ? total * 0.9 : total;
+
+  return (
     <div>
-      <h1>View our products to Purchase from us</h1>
+      <h1>Products</h1>
+      {products.map((product) => (
+        <div key={product.id}>
+          <p>
+            {product.name}  
+          </p>
+          <p>${product.price}</p>
+          <p>{product.quantity}</p>
+          <button onClick={() => addToCart(product)}>Add to Cart</button>
+          <button onClick={() => incrementQuantity(product.id)}>
+            Increment Quantity
+          </button>
+        </div>
+      ))}
 
-      <div>
-        {products.map((product:Products)=>(
-          <div key={product.id}>
-            <div>
-              <p>{product.name}</p>
-              <p>{product.quantity}</p>
-              <p>${product.price}</p>
-              {/* <button onClick={addToCart(product.id)}>Increment Quantity</button> */}
-              <button onClick={()=> product.quantity + 1}>Increment Quantity</button>
-            </div>
-          </div>
-        ))}
-        <h1>View your Cart Items</h1>
+      <h1>Cart</h1>
+      {cart.length === 0 && <p>No items in cart</p>}
+      {cart.map((item) => (
+        <div key={item.id}>
+          <p>
+            {item.name} - {item.quantity} × ${item.price} = $
+            {item.price * item.quantity}
+          </p>
+        </div>
+      ))}
 
-      </div>
+      <h2>Total: ${finalTotal.toFixed(2)}</h2>
+
+      <input
+        placeholder="Enter discount code"
+        value={discount}
+        onChange={(e) => setDiscount(e.target.value)}
+      />
+      <button onClick={applyDiscount}>Apply Code</button>
     </div>
-  )
+  );
 }
-
-export default App
